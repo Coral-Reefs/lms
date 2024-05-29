@@ -1,0 +1,48 @@
+main {
+  margin-top: 50px;
+}
+.button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-decoration: none;
+  min-height: 200px;
+  background-color: #58cc02;
+  box-shadow: 0 8px 0 #58a700;
+  border: 0;
+  outline: none;
+  padding: 5px 20px;
+  border-radius: 15px;
+  color: white;
+  cursor: pointer;
+}
+.button:active {
+  box-shadow: none;
+  transform: translateY(8px);
+}
+.digit-input {
+  width: 35px;
+  height: 35px;
+  margin: 2px;
+  text-align: center;
+  font-size: 20px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+}
+@media (min-width: 767px) {
+  .digit-input {
+    width: 50px;
+    height: 50px;
+    margin: 10px;
+  }
+}
+.digit-input:focus {
+  border-color: #2ecd40;
+  outline: none;
+  box-shadow: 0 2rem 5rem rgba(black, 0.3);
+}
+.input-group {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
