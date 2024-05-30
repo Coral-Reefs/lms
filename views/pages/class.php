@@ -60,9 +60,10 @@ if(mysqli_num_rows(mysqli_query($cn, $query_check)) == 0 && $class_info['owner']
     <div class="modal-content">
     <form action="/controllers/posts/add.php" method="POST" enctype="multipart/form-data">
       <div class="modal-header">
-        <!-- title and score -->
-        <input class="modal-title form-control w-50 fs-5 me-3" name="title" placeholder="Material title">
-        <input type="number" class="form-control w-auto fs-5" name="totalScore" id="score" placeholder="Total score" min="0">
+        <!-- title and marks -->
+        <input type="hidden" name="class_id" value="<?php echo $class_id ?>">
+        <input class="modal-title form-control w-50 fs-5 me-4" name="title" placeholder="Title" required>
+        <input type="number" class="form-control w-auto" name="marks" id="marks" placeholder="Total marks" min="0">
 
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -72,12 +73,18 @@ if(mysqli_num_rows(mysqli_query($cn, $query_check)) == 0 && $class_info['owner']
         <textarea name="body" class="form-control mb-3" rows="7" placeholder="Content here..."></textarea>
 
         <!-- file -->
-        <input type="file" class="form-control" name="file">
+        <input type="file" class="form-control mb-3" name="files[]" multiple>
+
+        <label for="duedate" id="duelabel">Due on:</label>
+        <div class="d-flex" id="duedate">
+          <input type="date" name="duedate" class="form-control w-auto">
+          <input type="time" name="duetime" class="form-control w-auto">
+        </div>
       </div>
 
       <div class="modal-footer">
         <button class="btn btn-primary" data-bs-target="#modal" data-bs-toggle="modal" type="button">Go back</button>
-        <button class="btn btn-success">Save</button>
+        <input class="btn btn-success" type="submit" value="Post">
       </div>
     </form>
     </div>
@@ -91,16 +98,18 @@ $posts = mysqli_fetch_all($result, MYSQLI_ASSOC);
 foreach($posts as $post):
 ?>
 <div class="col-12">
+  <a href="post.php?post_id=<?php echo $post['id']?>" class="text-decoration-none text-bg-light">
     <div class="card">
     <div class="card-header">
-        Featured
+        <?php echo is_null($post['marks']) ? "Material": "Assignment"?>
     </div>
     <div class="card-body">
-        <h5 class="card-title">Special title treatment</h5>
-        <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+        <h5 class="card-title"><?php echo $post['title']?></h5>
+        <p class="card-text"><?php echo $post['body']?></p>
         <a href="#" class="btn btn-primary">Go somewhere</a>
     </div>
     </div>
+  </a>
 </div>
 <?php endforeach?>
 </div>
@@ -116,14 +125,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
 const materialBtn = document.getElementById('materialbtn');
 const assignmentBtn = document.getElementById('assignmentbtn');
-const score = document.getElementById('score');
+const marks = document.getElementById('marks');
+const due = document.getElementById('duedate');
+const duelabel = document.getElementById('duelabel');
 
 materialBtn.addEventListener('click', () => {
-    score.classList.add('d-none');
+    marks.classList.add('d-none');
+    marks.required = false;
+    due.classList.add('d-none');
+    duelabel.classList.add('d-none');
 });
 
 assignmentBtn.addEventListener('click', () => {
-    score.classList.remove('d-none');
+    marks.classList.remove('d-none');
+    marks.required = true;
+    due.classList.remove('d-none');
+    duelabel.classList.remove('d-none');
 });
 </script>
 <?php
