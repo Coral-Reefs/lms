@@ -4,7 +4,7 @@
 
 require_once "../connection.php";
 $title = $_POST['title'];
-$body = $_POST['body'];
+$body = mysqli_real_escape_string($cn, $_POST['body']);
 $class_id = $_POST['class_id'];
 
 $current_date = date("d M Y");

@@ -91,28 +91,89 @@ if(mysqli_num_rows(mysqli_query($cn, $query_check)) == 0 && $class_info['owner']
   </div>
 </div>
 
+<div class="col-md-8">
+<div class="row g-4">
 <?php
 $query = "SELECT * FROM posts WHERE class_id = '$class_id'";
 $result = mysqli_query($cn, $query);
 $posts = mysqli_fetch_all($result, MYSQLI_ASSOC);
 foreach($posts as $post):
+  $isAssignment = $post['marks'] != NULL;
 ?>
 <div class="col-12">
   <a href="post.php?post_id=<?php echo $post['id']?>" class="text-decoration-none text-bg-light">
     <div class="card">
-    <div class="card-header">
-        <?php echo is_null($post['marks']) ? "Material": "Assignment"?>
+    <div class="card-header d-flex justify-content-between">
+      
+        <?php if($isAssignment): ?>
+        <span class='badge text-bg-warning'>Assignment</span> 
+        <small class="date"><?php echo date("Y-m-d H:i:s", $post['due']);?></small>
+        <?php else:?>
+        <span class='badge text-bg-primary'>Material</span>
+        <?php endif; ?>
     </div>
     <div class="card-body">
         <h5 class="card-title"><?php echo $post['title']?></h5>
-        <p class="card-text"><?php echo $post['body']?></p>
+        <p class="card-text"><?php echo nl2br(htmlspecialchars($post['body'])) ?></p>
+    </div>
+    <div class="card-footer">
+      <small> <?php echo date('d M Y', $post['date']) ?></small>
     </div>
     </div>
   </a>
 </div>
 <?php endforeach?>
+</div>  
+</div>
+
+<!-- right bar -->
+<div class="col-md-4 d-none d-md-block">
+  <div class="card mb-5">
+    <div class="card-header">
+      
+    <h5 class="card-title m-0">Code</h5>
+    </div>
+    <div class="card-body d-flex justify-content-center align-items-center">
+      <p class="card-text fs-1 d-inline m-1" id="class-id"><?php echo $class_id?></p>
+      <button class="btn copy-btn" onclick="copyToClipboard()"><i class="bi bi-copy fs-5"></i></button>
+      <button class="btn copy-btn p-0" onclick="copyToClipboard()"><i class="bi bi-link-45deg fs-3"></i></button>
+    </div>
+  </div>
+  
+  <div class="card">
+    <div class="card-header">
+      Upcoming
+    </div>
+    <div class="card-body">
+      <?php 
+      $query = "SELECT * FROM posts WHERE class_id = '$class_id' AND marks IS NOT NULL AND due IS NOT NULL 
+      ORDER BY CAST(due AS UNSIGNED) ASC;";
+      $result = mysqli_query($cn, $query);
+      $sorted_assignments = mysqli_fetch_all($result, MYSQLI_ASSOC);
+      if(!count($sorted_assignments)){
+        echo "<span class='text-body-tertiary'>Woohoo! No work due soon</span>";
+      }
+      foreach($sorted_assignments as $upcoming):
+      ?>
+        <!-- upcoming assignments -->
+        <div class="mb-3">
+          <small class="m-0 d-block text-body-tertiary date"><?php echo date("d M Y H:i:s", $upcoming['due'])?></small>
+          <a href="post.php?post_id=<?php echo $post['id']?>" class="link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-50-hover">
+            <?php echo $upcoming['title']?>
+          </a>
+        </div>
+        
+      <?php endforeach?>
+    </div>
+  </div>
+
+
+</div>
+
 </div>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.30.1/moment.min.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -141,6 +202,25 @@ assignmentBtn.addEventListener('click', () => {
     due.classList.remove('d-none');
     duelabel.classList.remove('d-none');
 });
+
+let timestamps = document.querySelectorAll('.date');
+timestamps.forEach(timestamp => {
+    let timeAgo = moment.utc(timestamp.innerText).local().fromNow();
+    timestamp.innerText = timeAgo;
+});
+
+function copyToClipboard() {
+    var textToCopy = document.getElementById('class-id').innerText;
+    var tempTextArea = document.createElement('textarea');
+    tempTextArea.value = textToCopy;
+    document.body.appendChild(tempTextArea);
+    tempTextArea.select();
+    document.execCommand('copy');
+
+    document.body.removeChild(tempTextArea);
+
+    alert('Text copied to clipboard!');
+}
 </script>
 <?php
 }
