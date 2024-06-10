@@ -123,14 +123,14 @@ require_once "controllers/connection.php";?>
 $user_id = $_SESSION['user_info']['id'];
 if($_SESSION['user_info']['isTeacher']){
     $query = "SELECT classes.name, classes.id, classes.description, users.name AS owner FROM classes 
-        INNER JOIN users ON classes.owner = users.id
-        WHERE classes.owner = $user_id
+        INNER JOIN users ON classes.owner_id = users.id
+        WHERE classes.owner_id = $user_id
         ORDER BY create_date ASC";
 }else{
-    $query = "SELECT classes.id, classes.name, classes.description, classes.create_date, classes.owner, users.name AS owner
+    $query = "SELECT classes.id, classes.name, classes.description, classes.create_date, classes.owner_id, users.name AS owner
     FROM students
     JOIN classes ON students.class_id = classes.id
-    JOIN users ON classes.owner = users.id
+    JOIN users ON classes.owner_id = users.id
     WHERE students.user_id = $user_id;";
 }
 

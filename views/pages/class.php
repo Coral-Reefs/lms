@@ -5,16 +5,15 @@ $class_id = $_GET['id'];
 $user_id = $_SESSION['user_info']['id'];
 require_once "../../controllers/connection.php";
 
-$query = "SELECT classes.name, classes.description, classes.create_date, classes.owner, users.name AS owner_name FROM classes 
-INNER JOIN users ON classes.owner = users.id
+$query = "SELECT classes.name, classes.description, classes.create_date, classes.owner_id, users.name AS owner_name FROM classes 
+INNER JOIN users ON classes.owner_id = users.id
 WHERE classes.id = '$class_id'";
 $result = mysqli_query($cn, $query);
 $class_info = mysqli_fetch_array($result, MYSQLI_ASSOC);
-// var_dump($class_info);
 
 //check if user is in class
 $query_check = "SELECT user_id FROM students WHERE user_id = '$user_id' AND class_id = '$class_id'";
-if(mysqli_num_rows(mysqli_query($cn, $query_check)) == 0 && $class_info['owner'] != $user_id){ ?>
+if(mysqli_num_rows(mysqli_query($cn, $query_check)) == 0 && $class_info['owner_id'] != $user_id){ ?>
     <script>
         alert("Class not found!");
         window.location.replace("/");
@@ -22,6 +21,7 @@ if(mysqli_num_rows(mysqli_query($cn, $query_check)) == 0 && $class_info['owner']
 <?php
     die();
 }
+
 ?>
 
 <link rel="stylesheet" href="../../assets/styles/style.css">
@@ -94,31 +94,64 @@ if(mysqli_num_rows(mysqli_query($cn, $query_check)) == 0 && $class_info['owner']
 <div class="col-md-8">
 <div class="row g-4">
 <?php
-$query = "SELECT * FROM posts WHERE class_id = '$class_id'";
+$query = "SELECT * FROM posts WHERE class_id = '$class_id' ORDER BY id DESC";
 $result = mysqli_query($cn, $query);
 $posts = mysqli_fetch_all($result, MYSQLI_ASSOC);
 foreach($posts as $post):
   $isAssignment = $post['marks'] != NULL;
+  $post_id = $post['id'];
+
+  if($isAssignment && !$_SESSION['user_info']['isTeacher']){
+    $query_submissions = "SELECT id FROM submissions WHERE post_id = $post_id AND user_id = $user_id";
+    $result_submissions = mysqli_query($cn, $query_submissions);
+    $isSubmitted = mysqli_num_rows($result_submissions)==0 ? false : true;
+  }
 ?>
 <div class="col-12">
-  <a href="post.php?post_id=<?php echo $post['id']?>" class="text-decoration-none text-bg-light">
+  <a href="post.php?post_id=<?php echo $post_id?>" class="text-decoration-none text-bg-light">
     <div class="card">
     <div class="card-header d-flex justify-content-between">
       
         <?php if($isAssignment): ?>
-        <span class='badge text-bg-warning'>Assignment</span> 
-        <small class="date"><?php echo date("Y-m-d H:i:s", $post['due']);?></small>
+          <span class='badge text-bg-warning'>Assignment</span> 
+          <small class="date <?php echo ($post['due'] < $date && !$_SESSION['user_info']['isTeacher'] && !$isSubmitted) ? 'text-danger' : NULL ?>"><?php echo date("Y-m-d H:i:s", $post['due']);?></small>
         <?php else:?>
-        <span class='badge text-bg-primary'>Material</span>
+          <span class='badge text-bg-primary'>Material</span>
         <?php endif; ?>
     </div>
     <div class="card-body">
         <h5 class="card-title"><?php echo $post['title']?></h5>
         <p class="card-text"><?php echo nl2br(htmlspecialchars($post['body'])) ?></p>
+
+        <!-- display files -->
+        <?php
+          $query_files = "SELECT * FROM post_files WHERE post_id = $post_id";
+          $result = mysqli_query($cn, $query_files);
+          if(mysqli_num_rows($result) > 0){?>
+          <small class="my-3 text-body-tertiary">
+          <?php  echo mysqli_num_rows($result) ?>
+          files attached</small>
+          <?php
+          }
+          // $files = mysqli_fetch_all($result, MYSQLI_ASSOC);
+          // foreach($files as $file):
+        ?>
+        <!-- <a class="form-control mt-3 text-decoration-none" href="/assets/public/files/<?php echo $file['file_path']?>"><?php echo $file['file_path']?></a> -->
+
+        <?php // endforeach; ?>
+
     </div>
     <div class="card-footer">
-      <small> <?php echo date('d M Y', $post['date']) ?></small>
+      <small> <?php echo date('M d, Y', $post['date']) ?></small>
     </div>
+
+    <!-- alert badge -->
+    <?php
+    if(isset($isSubmitted) && !$isSubmitted): ?>
+      <span class="position-absolute top-0 start-100 translate-middle p-2 bg-danger border border-light rounded-circle">
+        <span class="visually-hidden">alert</span>
+      </span>
+    <?php endif; ?>
     </div>
   </a>
 </div>
@@ -128,6 +161,8 @@ foreach($posts as $post):
 
 <!-- right bar -->
 <div class="col-md-4 d-none d-md-block">
+
+  <?php if($class_info['owner_id'] == $user_id):?>
   <div class="card mb-5">
     <div class="card-header">
       
@@ -139,12 +174,13 @@ foreach($posts as $post):
       <button class="btn copy-btn p-0" onclick="copyToClipboard()"><i class="bi bi-link-45deg fs-3"></i></button>
     </div>
   </div>
+  <?php endif;?>
   
   <div class="card">
     <div class="card-header">
       Upcoming
     </div>
-    <div class="card-body">
+    <div class="card-body pt-0">
       <?php 
       $query = "SELECT * FROM posts WHERE class_id = '$class_id' AND marks IS NOT NULL AND due IS NOT NULL 
       ORDER BY CAST(due AS UNSIGNED) ASC;";
@@ -156,7 +192,7 @@ foreach($posts as $post):
       foreach($sorted_assignments as $upcoming):
       ?>
         <!-- upcoming assignments -->
-        <div class="mb-3">
+        <div class="mt-3">
           <small class="m-0 d-block text-body-tertiary date"><?php echo date("d M Y H:i:s", $upcoming['due'])?></small>
           <a href="post.php?post_id=<?php echo $post['id']?>" class="link-offset-2 link-offset-3-hover link-underline link-underline-opacity-0 link-underline-opacity-50-hover">
             <?php echo $upcoming['title']?>

@@ -8,7 +8,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   </head>
   <body>
-    <?php session_start(); 
+    <?php 
+    session_start(); 
+    date_default_timezone_set('Asia/Kuala_Lumpur');
     if (!isset($_SESSION["user_info"]) && $title != "Login" && $title !="Register") {
       header("Location: /welcome.php");
     }else if($title != "Login" && $title !="Register"){

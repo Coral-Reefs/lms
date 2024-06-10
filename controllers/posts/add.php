@@ -7,10 +7,6 @@ $title = $_POST['title'];
 $body = mysqli_real_escape_string($cn, $_POST['body']);
 $class_id = $_POST['class_id'];
 
-$current_date = date("d M Y");
-$current_time = date("H:i:s");
-$date = strtotime($current_date . $current_time);
-
 $marks = ($_POST['marks'] === '' || !isset($_POST['marks'])) ? NULL : $_POST['marks'];
 $due = strtotime((isset($_POST['duedate']) ? $_POST['duedate'] : NULL) . (isset($_POST['duetime']) ? $_POST['duetime'] : NULL));
 
@@ -23,12 +19,19 @@ $query .= ")";
 mysqli_query($cn, $query);
 $post_id = mysqli_insert_id($cn);
 
-// Handle file uploads
+echo "<pre>";
+var_dump($_FILES);
+echo "</pre>";
+
+// upload files
 $files = $_FILES['files'];
 for ($i = 0; $i < count($files['name']); $i++) {
-    $file_path = '/assets/public/' . basename($files['name'][$i]);
+    $file_name = mysqli_real_escape_string($cn, basename($files['name'][$i]));
+
+    $file_path = __DIR__ . '/../../assets/public/files/' . basename($files['name'][$i]);
     if (move_uploaded_file($files['tmp_name'][$i], $file_path)) {
-        $query = "INSERT INTO post_files (file_path, post_id) VALUES ('$file_path', '$post_id')";
+        $query = "INSERT INTO post_files (file_path, post_id) VALUES ('$file_name', '$post_id')";
+        echo $query;
         mysqli_query($cn, $query);
     }
 }

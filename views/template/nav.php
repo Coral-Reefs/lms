@@ -9,7 +9,7 @@
         <a class="navbar-brand" href="/">Eduportal</a>
     </div>
 
-    <a href="/views/pages/profile.php"><img class="rounded-circle" width="45px" src="https://placehold.co/100x100/000000/FFF" alt=""></a>
+    <a href="/views/pages/profile.php"><img class="rounded-circle" width="45px" src="<?php echo $_SESSION['user_info']['pfp'] ?>" alt=""></a>
     
 
     <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
