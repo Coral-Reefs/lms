@@ -51,7 +51,7 @@ require_once "../../controllers/connection.php";
 			?>
 			<tr>
 				<td>
-					<img src="<?php echo $student['pfp']?>" class="me-3" width="30px">
+					<img src="<?php echo $student['pfp']?>" class="me-3" width="30px" height="30px">
 					<a href="profile.php?user_id=<?php echo $student_id?>" class="link-dark link-offset-1 link-underline link-underline-opacity-0 link-underline-opacity-75-hover">
 						<?php echo $student['name'] ?>
 					</a>

@@ -155,7 +155,7 @@ require_once "../../controllers/connection.php";
                         
                         <a href="profile.php?user_id=<?php echo $student['user_id']?>" class="list-group-item list-group-item-action rounded-4 border-0 py-3 d-flex align-items-center justify-content-between">
                             <div class="d-flex align-items-center">
-                                <img src="<?php echo $student['pfp'] ?>" width="40px" class="rounded-circle me-3" alt="">
+                                <img src="<?php echo $student['pfp'] ?>" width="40px" height="40px" class="rounded-circle me-3" alt="">
                                 <?php echo $student['name'] ?>
                             </div>
                         </a>

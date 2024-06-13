@@ -9,7 +9,7 @@
         <a class="navbar-brand" href="/">Eduportal</a>
     </div>
 
-    <a href="/views/pages/profile.php" class="text-decoration-none text-dark"><?php echo $_SESSION['user_info']['isTeacher'] ? 'Teacher' : 'Student'?><img class=" ms-3 rounded-circle" width="45px" src="<?php echo $_SESSION['user_info']['pfp'] ?>" alt=""></a>
+    <a href="/views/pages/profile.php" class="text-decoration-none text-dark"><?php echo $_SESSION['user_info']['isTeacher'] ? 'Teacher' : 'Student'?><img class=" ms-3 rounded-circle" width="45px" height="45px" src="<?php echo $_SESSION['user_info']['pfp'] ?>" alt=""></a>
     
 
     <div class="offcanvas offcanvas-start" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">

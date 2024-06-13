@@ -21,7 +21,7 @@ $user = mysqli_fetch_assoc($result);
 <div class="container py-5 mt-5">
 <div class="row justify-content-center gap-5 align-items-center">
     <div class="col-xl-2 col-lg-3 col-md-4 col-6">
-        <img class="w-100 rounded-circle" src="<?php echo $user['pfp'] ?>" alt="">
+        <img class="rounded-circle object-fit-cover" width="200px" height="200px" src="<?php echo $user['pfp'] ?>" alt="">
     </div>
     <div class="col-md-4 col-sm-6">
         <?php if(!isset($_GET['edit'])):?>
