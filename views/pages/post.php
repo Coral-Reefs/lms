@@ -58,15 +58,42 @@ if(mysqli_num_rows(mysqli_query($cn, $query_check)) == 0 && $post['owner_id'] !=
 
     <!-- display submission -->
     <?php if(isset($_GET['student_id'])){?>
-        
-        <h5 class="mt-5">Student's files</h5>
 
         <?php
         $student_id = $_GET['student_id'];
-        $query_submission = "SELECT id FROM submissions WHERE post_id = $post_id AND user_id = $student_id";
+        $query_submission = "SELECT * FROM submissions WHERE post_id = $post_id AND user_id = $student_id AND status = 1";
         $result_submission = mysqli_query($cn, $query_submission);
         if(mysqli_num_rows($result_submission)>0){
-            $submission_id = mysqli_fetch_assoc($result_submission)['id'];
+            $submission = mysqli_fetch_assoc($result_submission);
+            $submission_id = $submission['id'];?>
+
+            <div class="d-flex justify-content-between align-items-end mt-5 mb-3">
+                <div>
+                    <h4>Student's files</h4>
+                    <p class="text-body-tertiary m-0">Submitted on <?php echo date('M d, h:i A', $submission['date']) ?></p>
+                </div>
+                
+                <?php if($submission['marks'] == NULL): ?>
+                    <form action="/controllers/assignments/grade.php" method="POST">
+                        <input type="hidden" value="<?php echo $submission_id?>" name="submission_id">
+                        <input type="number" 
+                            class="form-control w-auto d-inline mb-2" 
+                            min="0" max="<?php echo $post['marks']?>" 
+                            name="marks" required>
+                        <label for="marks">/ <?php echo $post['marks'] ?></label>
+                        <input type="submit" class="btn btn-primary form-control  d-block" value="Grade">
+                    </form>
+                <?php else:?>
+                    <form action="/controllers/assignments/edit_grade.php" method="POST">
+                        <input type="hidden" value="<?php echo $submission_id?>" name="submission_id">
+                        <p class="m-0"><?php echo $submission['marks']?> / <?php echo $post['marks']?> marks</p>
+                        <input type="submit" class="btn btn-outline-primary form-control  d-block" value="Edit grade">
+                    </form>
+                <?php endif;?>
+            </div>
+            
+            <hr>
+            <?php
             $query_files = "SELECT file_path FROM submission_files WHERE submission_id = $submission_id";
             $result_files = mysqli_query($cn, $query_files);
             $submission_files = mysqli_fetch_all($result_files, MYSQLI_ASSOC);
@@ -75,8 +102,9 @@ if(mysqli_num_rows(mysqli_query($cn, $query_check)) == 0 && $post['owner_id'] !=
             <a class="card px-3 py-2 mt-3 text-decoration-none" href="/assets/public/files/<?php echo $file['file_path']?>"><?php echo $file['file_path']?></a>
 
         <?php endforeach;
+
         }else{
-            echo 'No submission found';
+            echo '<h5 class="my-5">No submission found!</h5>';
         }
     }?>
 </div>
@@ -96,7 +124,7 @@ if($isAssignment):
         if(mysqli_num_rows($result_students)==0):?>
             <div class="text-center">
             <p>No students in your class yet!</p>
-            <button class="btn btn-primary rounded-pill"> Invite students</button>
+            <a class="btn btn-primary rounded-pill" href="students.php?id=<?php echo $class_id?>"> Invite students</a>
             </div>
         <?php else:
         $students = mysqli_fetch_all($result_students, MYSQLI_ASSOC);?>
@@ -104,7 +132,7 @@ if($isAssignment):
         <div class="d-flex justify-content-between">
             <h5>Students</h5>
             <h6><?php
-            $query_submissions = "SELECT * FROM submissions WHERE post_id = $post_id";
+            $query_submissions = "SELECT * FROM submissions WHERE post_id = $post_id AND status = 1";
             $result_submissions = mysqli_query($cn, $query_submissions);
             $submissions = [];
             while ($row = mysqli_fetch_assoc($result_submissions)) {
@@ -116,7 +144,7 @@ if($isAssignment):
         <hr>
         <div class="list-group list-group-flush">
         <?php foreach($students as $student):?>
-            <a href="post.php?post_id=<?php echo $post_id?>&student_id=<?php echo $student['user_id']?>" class="list-group-item list-group-item-action rounded-3 d-flex align-items-center justify-content-between">
+            <a href="post.php?post_id=<?php echo $post_id?>&student_id=<?php echo $student['user_id']?>" class="list-group-item list-group-item-action rounded-4 border-0 py-3 d-flex align-items-center justify-content-between">
 
             <div class="d-flex align-items-center">
                 <img src="<?php echo $student['pfp'] ?>" width="40px" class="rounded-circle me-3" alt="">
@@ -125,7 +153,11 @@ if($isAssignment):
             <!-- missing or completed -->
             <?php 
             if (isset($submissions[$student['user_id']])) {
-                echo '<span class="badge bg-success">Completed</span>';
+                if($submissions[$student['user_id']]['marks'] == NULL){
+                    echo '<span class="badge bg-warning">Pending grade</span>';
+                }else{
+                    echo '<span class="badge bg-success">Graded</span>';
+                }
             } else {
                 echo '<span class="badge bg-danger">Missing</span>';
             }
@@ -148,19 +180,48 @@ if($isAssignment):
     <?php
     $query_submissions = "SELECT * FROM submissions WHERE post_id = $post_id AND user_id = $user_id";
     $result_submissions = mysqli_query($cn, $query_submissions);
-    if (mysqli_num_rows($result_submissions)==0) {
+    $submission = mysqli_fetch_assoc($result_submissions);
+    $unsubmitted = (isset($submission) && $submission['status'] == 0) ? true : false;
+
+    if (mysqli_num_rows($result_submissions)==0 || $unsubmitted) {
         if($post['due'] < $date){
             echo '<span class="badge bg-danger">Missing</span>';
+        }else{
+            echo '<span class="badge bg-success">Assigned</span>';
         }
     } else {
-        echo '<span class="badge bg-success">Turned in</span>';
+        if($submission['marks']!=NULL){
+            echo '<span class="badge bg-success">'.$submission['marks'].' marks</span>';
+
+        }else{
+            if($submission['date'] > $post['due']){
+                echo '<span class="badge bg-warning">Turned in late</span>';  
+            }else{
+                echo '<span class="badge bg-success">Turned in</span>';
+            }
+
+        }
     }
     ?>
     </div>
 
-    <?php if(mysqli_num_rows($result_submissions)==0):?>
+    <?php if(mysqli_num_rows($result_submissions)==0 || $unsubmitted):?>
 
     <form action="/controllers/assignments/submit.php" method="POST" enctype="multipart/form-data">
+    <?php
+    if($unsubmitted):
+        $submission_id = $submission['id'];
+        $query_files = "SELECT * FROM submission_files WHERE submission_id = $submission_id";
+        $result = mysqli_query($cn, $query_files);
+        $files = mysqli_fetch_all($result, MYSQLI_ASSOC);
+        foreach($files as $file):
+        ?>
+        <div class="d-flex mt-3 justify-content-between">
+            <a class="card px-3 py-2 w-100 text-decoration-none" href="/assets/public/files/<?php echo $file['file_path']?>"><?php echo $file['file_path']?></a>
+            <a href="/controllers/assignments/delete_file.php?id=<?php echo $file['id']?>" class="btn btn-danger"><i class="bi bi-trash-fill"></i></a>
+        </div>
+        
+        <?php endforeach; endif; ?>
         <input type="hidden" name="post_id" value="<?php echo $post_id?>">
         <input type="file" name="files[]" multiple class="form-control my-3">
         
@@ -170,10 +231,9 @@ if($isAssignment):
     </div>
 
     <!-- display files -->
-    <form action="">
-    <?php else: 
-        $submission = mysqli_fetch_assoc($result_submissions);
-        $submission_id = $submission['id'];
+    <?php else: ?>
+    <form action="/controllers/assignments/unsubmit.php" method="POST">
+        <?php $submission_id = $submission['id'];
         $query_files = "SELECT * FROM submission_files WHERE submission_id = $submission_id";
         $result = mysqli_query($cn, $query_files);
         $files = mysqli_fetch_all($result, MYSQLI_ASSOC);
@@ -181,7 +241,8 @@ if($isAssignment):
         ?>
         <a class="card px-3 py-2 mt-3 text-decoration-none" href="/assets/public/files/<?php echo $file['file_path']?>"><?php echo $file['file_path']?></a>
         <?php endforeach; ?>
-
+        
+        <input type="hidden" name="submission_id" value="<?php echo $submission_id?>">
         <input type="submit" class="btn btn-outline-primary form-control mt-3" value="Unsubmit">
     </form>
 <?php 

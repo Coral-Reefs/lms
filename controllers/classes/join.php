@@ -19,10 +19,16 @@ if(mysqli_num_rows(mysqli_query($cn, $query_check)) == 0){ ?>
         window.location.replace("/");
     </script>
 <?php
-    // $_SESSION['wrong_code'] = (isset($_SESSION['wrong_code'])) ? $_SESSION['wrong_code'] + 1 : 1;
-    // if($_SESSION['wrong_code'] > 3){
-       
-    // }
+    die();
+}
+
+$query_check = "SELECT id FROM students WHERE user_id = $user AND class_id = '$class_code'";
+if(mysqli_num_rows(mysqli_query($cn, $query_check)) > 0){ ?>
+    <script>
+        alert("You're already in that class");
+        window.location.replace("/");
+    </script>
+<?php
     die();
 }
 

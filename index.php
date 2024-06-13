@@ -6,9 +6,9 @@ require_once "controllers/connection.php";?>
 <link rel="stylesheet" href="assets/styles/style.css">
 
 <div class="container-lg py-5 px-lg-5">
-<div class="row g-5 px-xl-5">
+<div class="row g-5 px-xl-5" style="min-height:250px;">
 
-<div class="col-md-4 col-sm-6  px-4">
+<div class="col-md-4 col-sm-6 px-4">
     <?php 
     // var_dump($_SESSION['user_info']);
 
@@ -139,18 +139,130 @@ $classes = mysqli_fetch_all($result, MYSQLI_ASSOC);
 foreach($classes as $class):
 ?>
 <div class="col-md-4 col-sm-6 px-4">
-    <a class="button ratio ratio-4x3" href="/views/pages/class.php?id=<?php echo $class['id']?>">
-        <div class="d-flex justify-content-between align-items-start flex-column py-2 px-4">
-            
-        <p class="pt-2"><?php echo $class['owner']?></p>
-        <div> 
-            <h3><?php echo $class['name']?></h3>
-            <p><?php echo $class['description']?></p>
-        </div>
+    <a class="button ratio ratio-4x3 h-100" href="/views/pages/class.php?id=<?php echo $class['id']?>" id="class-link-<?php echo $class['id']; ?>">
+        <div class="d-flex justify-content-between align-items-start flex-column py-2 px-4 pe-3">
+            <div class="pt-2 w-100 d-flex justify-content-between">
+                <p><?php echo $class['owner']?></p>
+                <!-- more btn -->
+                <div class="btn-group dropdown w-auto">
+                    <button type="button" class="btn text-white rounded-circle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-three-dots-vertical fs-5"></i>
+                    </button>
+                    <ul class="dropdown-menu z-3"> 
+                        <?php if($_SESSION['user_info']['isTeacher']):?>
+                        <li>
+                            <button class="dropdown-item" 
+                                onclick="event.preventDefault(); showModal('<?php echo $class['id']; ?>', 'edit')">
+                                Edit
+                            </button>
+                        </li>
+                        <li>
+                            <button class="dropdown-item" 
+                                onclick="event.preventDefault(); showModal('<?php echo $class['id']; ?>', 'delete')">
+                                Delete
+                            </button>
+                        </li>
+                        <?php else:?>
+                        <li>
+                            <button class="dropdown-item" 
+                                onclick="event.preventDefault(); showModal('<?php echo $class['id']; ?>', 'leave')">
+                                Leave
+                            </button>
+                        </li>
+                        <?php endif;?>
+                    </ul>
+                </div>
+            </div>
+            <div> 
+                <h3><?php echo $class['name']?></h3>
+                <p><?php echo $class['description']?></p>
+            </div>
         </div>
     </a>
 </div>
-<?php endforeach;?>
+<?php if($_SESSION['user_info']['isTeacher']):?>
+<!-- edit modal -->
+<div class="modal fade" id="editClass-<?php echo $class['id']; ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Edit Class</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="/controllers/classes/update.php" method="POST" autocomplete="off">
+                <div class="modal-body">
+                    <input type="hidden" name="id" value="<?php echo $class['id']?>">
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="floatingInput" name="name" value="<?php echo $class['name']?>" required>
+                        <label for="floatingInput">Class name</label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="floatingInput" name="desc" value="<?php echo $class['description']?>">
+                        <label for="floatingInput">Description</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-info">Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- delete modal -->
+<div class="modal fade" id="deleteClass-<?php echo $class['id']; ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">
+                Are you sure you want to delete this class?
+            </h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        
+        <form action="/controllers/classes/delete.php" method="POST" autocomplete="off">
+            <div class="modal-body">
+                Type <b><?php echo $class['name']?></b> to confirm
+                <input type="hidden" name="id" value="<?php echo $class['id']?>">
+                <input type="text" name="confirm" class="form-control mt-3" placeholder="Type <?php echo $class['name']?>">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-danger">Delete</button>
+            </div>
+        </form>
+        </div>
+    </div>
+</div>
+<?php else:?>
+<!-- leave -->
+<div class="modal fade" id="leaveClass-<?php echo $class['id']; ?>" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h1 class="modal-title fs-5" id="exampleModalLabel">
+                Are you sure you want to leave this class?
+            </h1>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        
+        <div class="modal-body">
+            Are you sure you want to leave this class?
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <form action="/controllers/classes/leave.php" method="POST">
+                <input type="hidden" name="id" value="<?php echo $class['id']; ?>">
+                <button type="submit" class="btn btn-warning">Leave</button>
+            </form>
+        </div>
+        </div>
+    </div>
+</div>
+<?php endif;?>
+<?php endforeach; ?>
+
 
 </div>
 </div>
@@ -174,4 +286,19 @@ inputs.forEach((input, index) => {
         } 
     }); 
 });
+
+function showModal(classId, type) {
+    var classLink = document.getElementById('class-link-' + classId);
+
+    // prevent navigation
+    classLink.addEventListener('click', function(event) {
+        event.preventDefault();
+    });
+
+    // Show modal
+    var modalId = '#' + type + 'Class-' + classId;
+    var modal = new bootstrap.Modal(document.querySelector(modalId));
+    modal.show();
+}
+
 </script>

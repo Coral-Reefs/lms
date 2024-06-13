@@ -25,7 +25,7 @@ function generateUniqueId($cn) {
 
 $id = generateUniqueId($cn);
 
-$query = "INSERT INTO classes (id, name, description, create_date, owner) VALUES
+$query = "INSERT INTO classes (id, name, description, create_date, owner_id) VALUES
 ('$id','$name','$description', $date, $user)";
 
 mysqli_query($cn, $query);

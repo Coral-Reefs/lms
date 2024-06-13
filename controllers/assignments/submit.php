@@ -4,16 +4,25 @@ require_once "../connection.php";
 session_start();
 
 $post_id = $_POST['post_id'];
+echo $post_id;
 $user_id = $_SESSION['user_info']['id'];
 
-$query = "INSERT INTO submissions (date, user_id, post_id) VALUES ('$date', '$user_id', '$post_id') ";
+$query_check = "SELECT id FROM submissions WHERE user_id = $user_id AND post_id = $post_id";
+$result_check = mysqli_query($cn, $query_check);
+$submission_id = 0;
+if(mysqli_num_rows($result_check)>0){
+    echo '1';
+    $submission_id = mysqli_fetch_assoc($result_check)['id'];
+    $query = "UPDATE submissions SET date = '$date', status = 1 WHERE id = $submission_id ";
+    mysqli_query($cn, $query);
 
-mysqli_query($cn, $query);
-$submission_id = mysqli_insert_id($cn);
+}else{
+    echo '2';
+    $query = "INSERT INTO submissions (date, status, user_id, post_id) VALUES ('$date', 1, '$user_id', '$post_id') ";
+    mysqli_query($cn, $query);
+    $submission_id = mysqli_insert_id($cn);
+}
 
-echo "<pre>";
-var_dump($_FILES);
-echo "</pre>";
 
 // upload files
 $files = $_FILES['files'];
@@ -30,4 +39,4 @@ for ($i = 0; $i < count($files['name']); $i++) {
 
 // Redirect or success message
 header("Location: $_SERVER[HTTP_REFERER]");
-exit();
+

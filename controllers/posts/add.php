@@ -3,7 +3,7 @@
 // var_dump($_FILES);
 
 require_once "../connection.php";
-$title = $_POST['title'];
+$title = mysqli_escape_string($cn, $_POST['title']);
 $body = mysqli_real_escape_string($cn, $_POST['body']);
 $class_id = $_POST['class_id'];
 
